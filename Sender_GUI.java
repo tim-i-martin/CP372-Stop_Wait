@@ -2,6 +2,8 @@ import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import java.awt.BorderLayout;
+
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
@@ -10,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.Insets;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
+import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerListModel;
 import javax.swing.SpinnerNumberModel;
@@ -23,7 +26,12 @@ public class Sender_GUI {
     private JTextField txtPORTReceiver;
     private JTextField txtPORTSender;
 	private JTextField txtFILEInput;
-	private JTextField txtTimeout;
+    private JTextField txtTimeout;
+    private JTextField txtPackageCount;
+
+    private JRadioButton reliableRadio;
+    private JRadioButton unreliableRadio;
+    private ButtonGroup operatingMode;
 
 	private JTextField textRefersTo;
 
@@ -143,6 +151,70 @@ public class Sender_GUI {
 	}
 
 	/**
+	 * create TextPackageCount JtextField() as a field to display current package count
+	 */
+	private void renderTextPackageCount() {
+		txtPackageCount = new JTextField();
+		//txtPackageCount.setToolTipText("enter the timeout in ms");
+		txtPackageCount.setText("package count");
+		GridBagConstraints gbc_txtPackageCount = new GridBagConstraints();
+		gbc_txtPackageCount.gridwidth = 3;
+		gbc_txtPackageCount.insets = new Insets(0, 0, 5, 5);
+		gbc_txtPackageCount.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtPackageCount.gridx = 3;
+		gbc_txtPackageCount.gridy = 8;
+		frmClientPortal.getContentPane().add(txtPackageCount, gbc_txtPackageCount);
+		txtPackageCount.setColumns(10);
+	}
+
+    /**
+     * create the radio buttons to configure the manner in which the program functions
+     */
+
+     private void renderButtonOperatingMode(){
+        reliableRadio = new JRadioButton();
+        reliableRadio.setText("Reliable");
+        
+        unreliableRadio = new JRadioButton();
+        unreliableRadio.setText("Unreliable");
+
+
+        operatingMode = new ButtonGroup();
+        operatingMode.add(reliableRadio);
+        operatingMode.add(unreliableRadio);
+
+
+        GridBagConstraints gbc_reliable = new GridBagConstraints();
+
+        gbc_reliable.gridwidth = 3;
+        gbc_reliable.insets = new Insets(0,0,5,5);
+        gbc_reliable.fill = GridBagConstraints.HORIZONTAL;
+        gbc_reliable.gridx = 3;
+        gbc_reliable.gridy = 9;
+
+        frmClientPortal.getContentPane().add(reliableRadio,gbc_reliable);
+
+        GridBagConstraints gbc_unreliable = new GridBagConstraints();
+        gbc_unreliable.gridwidth = 3;
+        gbc_unreliable.insets = new Insets(0,0,5,5);
+        gbc_unreliable.fill = GridBagConstraints.HORIZONTAL;
+        gbc_unreliable.gridx = 6;
+        gbc_unreliable.gridy = 9;
+
+        frmClientPortal.getContentPane().add(unreliableRadio,gbc_unreliable);
+
+
+
+
+     }
+
+
+
+
+
+
+
+	/**
 	 * create TextTimeout JtextField() as a field to capture the timeout calc
 	 */
 	private void renderTextTimeout() {
@@ -158,6 +230,7 @@ public class Sender_GUI {
 		frmClientPortal.getContentPane().add(txtTimeout, gbc_txtTimeout);
 		txtTimeout.setColumns(10);
 	}
+
 
 	private void renderBtnALIVE() {
 		JButton btnISALIVE = new JButton("ISALIVE");
@@ -231,6 +304,32 @@ public class Sender_GUI {
 		gbc_TimeoutLabel.gridy = 7;
 		frmClientPortal.getContentPane().add(TimeoutLabel, gbc_TimeoutLabel);
 	}
+
+	/**
+	 * create PackageCountLabel JLabel()
+	 */
+	private void renderPackageCount() {
+		JLabel PackageCountLabel = new JLabel("Current number of send-in order packages");
+		GridBagConstraints gbc_PackageCountLabel = new GridBagConstraints();
+		gbc_PackageCountLabel.insets = new Insets(0, 0, 5, 5);
+		gbc_PackageCountLabel.gridx = 1;
+		gbc_PackageCountLabel.gridy = 8;
+		frmClientPortal.getContentPane().add(PackageCountLabel, gbc_PackageCountLabel);
+	}
+
+
+    /**
+	 * create OperatingModeLabel JLabel()
+	 */
+	private void renderOperatingMode() {
+		JLabel OperatingModeLabel = new JLabel("What mode of operation would you like?");
+		GridBagConstraints gbc_OperatingModeLabel = new GridBagConstraints();
+		gbc_OperatingModeLabel.insets = new Insets(0, 0, 5, 5);
+		gbc_OperatingModeLabel.gridx = 1;
+		gbc_OperatingModeLabel.gridy = 9;
+		frmClientPortal.getContentPane().add(OperatingModeLabel, gbc_OperatingModeLabel);
+	}
+
 
 	/**
 	 * Create btnGET JButton
@@ -343,11 +442,14 @@ public class Sender_GUI {
         renderTextTimeout();
         renderTimeoutLabel(); 
 
+        renderPackageCount();
+        renderTextPackageCount();
+
         renderBtnALIVE();
 		renderBtnSEND();
 
-
-
+        renderOperatingMode();
+        renderButtonOperatingMode();
 
 		//Renders the Text Display for information from Server
 		renderTextDisplay();
