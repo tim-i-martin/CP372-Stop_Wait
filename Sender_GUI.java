@@ -18,6 +18,9 @@ import javax.swing.SpinnerListModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.JTextArea;
 import java.awt.Color;
+import java.io.IOException;
+import java.net.*;
+import java.util.Arrays;
 
 public class Sender_GUI {
 	//private BoardClient client = null;
@@ -233,15 +236,14 @@ public class Sender_GUI {
 
 
 	private void renderBtnALIVE() {
-		JButton btnISALIVE = new JButton("ISALIVE");
+		JButton btn = new JButton("ISALIVE");
 		GridBagConstraints gbc_btnISALIVE = new GridBagConstraints();
 		gbc_btnISALIVE.fill = GridBagConstraints.HORIZONTAL;
 		gbc_btnISALIVE.insets = new Insets(0, 0, 5, 5);
 		gbc_btnISALIVE.gridx = 12;
 		gbc_btnISALIVE.gridy = 2;
-		frmClientPortal.getContentPane().add(btnISALIVE, gbc_btnISALIVE);
-		actionBtnISALIVE(btnISALIVE);
-
+		frmClientPortal.getContentPane().add(btn, gbc_btnISALIVE);
+		actionBtnISALIVE(btn);
 	}
 
 	/**
@@ -399,17 +401,16 @@ public class Sender_GUI {
 	}
 
 	/**
-	 * adds Action listener to GET buttion
+	 * adds Action listener to ISALIVE buttion
 	 */
 	private void actionBtnISALIVE(JButton btnISALIVE) {
 		btnISALIVE.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try{
-                    textDisplay.setText("tried to test alive");
-
+					test_for_life();
 				} catch (Exception ex){
-					textDisplay.setText("Invalid Request");
+					textDisplay.setText("Invalid IP or Port");
 				}
 
 			}
@@ -454,5 +455,65 @@ public class Sender_GUI {
 		//Renders the Text Display for information from Server
 		renderTextDisplay();
 	}
+
+	public void test_for_life() throws IOException {
+		// Create new socket and associate w/ correct port later
+		DatagramSocket socket = new DatagramSocket();
+
+		// Get the IP address for the Sender from the txtIPReceiver input field
+		String IP = this.txtIPReceiver.getText();
+		InetAddress address = InetAddress.getByName(IP);
+
+		// Get the port from the txtPORTSender
+		int port = Integer.parseInt(this.txtPORTSender.getText());
+
+		// buffers
+		byte[] buf = {12, 13}; //send buffer
+		byte[] buf1 = new byte[2]; // receive buffer
+		DatagramPacket send_packet = new DatagramPacket(buf, 2, address, port);
+		DatagramPacket receive_packet = new DatagramPacket(buf1, 2);
+
+		// connect() method
+		socket.connect(address, port);
+
+		// test isBound() method
+		System.out.println("IsBound : " + socket.isBound());
+		// test isConnected() method
+		System.out.println("isConnected : " + socket.isConnected());
+		// test getInetAddress() method
+		System.out.println("InetAddress : " + socket.getInetAddress());
+		// test getPort() method
+		System.out.println("Port : " + socket.getPort());
+		// test getRemoteSocketAddress() method
+		System.out.println("Remote socket address : " +
+				socket.getRemoteSocketAddress());
+		// test getLocalSocketAddress() method
+		System.out.println("Local socket address : " +
+				socket.getLocalSocketAddress());
+
+		// send() method
+		socket.send(send_packet);
+		System.out.println("...packet sent successfully....");
+
+		// receive() method
+		socket.receive(receive_packet);
+		System.out.println("Received packet data : " +
+				Arrays.toString(receive_packet.getData()));
+
+		// getLocalPort() method
+		System.out.println("Local Port : " + socket.getLocalPort());
+
+		// getLocalAddress() method
+		System.out.println("Local Address : " + socket.getLocalAddress());
+
+		// setSOTimeout() method
+		socket.setSoTimeout(50);
+
+		// getSOTimeout() method
+		System.out.println("SO Timeout : " + socket.getSoTimeout());
+
+	}
+
+
 
 }
