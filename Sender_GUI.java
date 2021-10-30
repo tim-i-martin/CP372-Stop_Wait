@@ -457,24 +457,27 @@ public class Sender_GUI {
 	}
 
 	public void test_for_life() throws IOException {
+		// get Sender Port #
+		int port_sender = Integer.parseInt(this.txtPORTSender.getText());
+
 		// Create new socket and associate w/ correct port later
-		DatagramSocket socket = new DatagramSocket();
+		DatagramSocket socket = new DatagramSocket(port_sender);
 
 		// Get the IP address for the Sender from the txtIPReceiver input field
 		String IP = this.txtIPReceiver.getText();
 		InetAddress address = InetAddress.getByName(IP);
 
 		// Get the port from the txtPORTSender
-		int port = Integer.parseInt(this.txtPORTSender.getText());
+		int port_receiver = Integer.parseInt(this.txtPORTReceiver.getText());
 
 		// buffers
 		byte[] buf = {12, 13}; //send buffer
 		byte[] buf1 = new byte[2]; // receive buffer
-		DatagramPacket send_packet = new DatagramPacket(buf, 2, address, port);
+		DatagramPacket send_packet = new DatagramPacket(buf, 2, address, port_receiver);
 		DatagramPacket receive_packet = new DatagramPacket(buf1, 2);
 
 		// connect() method
-		socket.connect(address, port);
+		socket.connect(address, port_receiver);
 
 		// test isBound() method
 		System.out.println("IsBound : " + socket.isBound());

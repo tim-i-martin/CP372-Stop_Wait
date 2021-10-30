@@ -40,15 +40,20 @@ public class Receiver {
         // these are the two buffers needed to create the DatagramPackets
         // one empty for the receipt of new data bytes
         // one non-empty for the sending bytes (not 100% sure why though)
-        byte[] buf = new byte[2];
+        byte[] buf = new byte[100];
         byte[] send = {13, 18};
         // Creating the packet to fill upon receipt from sender
-        dg_packet = new DatagramPacket(buf, 2);
+        dg_packet = new DatagramPacket(buf, buf.length);
         // packet receipt from sender
         dg_socket.receive(dg_packet);
-        // sends initial response packet to Sender side w/ buffer send
-        DatagramPacket send_dg_packet = new DatagramPacket(send,
-                2, dg_packet.getAddress(), dg_packet.getPort());
-        dg_socket.send(send_dg_packet);
+
+        // test packet received:
+        String msg = new String(buf);
+        System.out.println("Received: " + msg);
+
+//        // sends initial response packet to Sender side w/ buffer send
+//        DatagramPacket send_dg_packet = new DatagramPacket(send,
+//                2, dg_packet.getAddress(), dg_packet.getPort());
+//        dg_socket.send(send_dg_packet);
     }
 }
