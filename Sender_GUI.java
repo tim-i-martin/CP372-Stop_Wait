@@ -41,6 +41,7 @@ public class Sender_GUI {
 	// Swing objects that will get passed to the BoardClient class
 	private JTextArea textDisplay;
 
+	private DatagramSocket socket;
 
 	/**
 	 * Launch the application.
@@ -387,7 +388,7 @@ public class Sender_GUI {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try{
-			
+
 				String refersTo = textRefersTo.getText();
 				
 				//client.GET(colour, x, y, refersTo);
@@ -408,7 +409,20 @@ public class Sender_GUI {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try{
-					test_for_life();
+					// Get sender port, IP and receiver port
+					int port_sender = Integer.parseInt(txtPORTSender.getText());
+					String IP = txtIPReceiver.getText();
+					int port_receiver = Integer.parseInt(txtPORTReceiver.getText());
+					// Call the test_for_life static function from the Sender class
+					// to assign the socket
+					socket = Sender.test_for_life(port_sender, port_receiver, IP);
+					if (socket != null){
+						textDisplay.setText("Receiver at " +
+								IP + ":" + port_receiver + "is alive");
+					} else {
+						textDisplay.setText("Receiver at " +
+								IP + ":" + port_receiver + "is not alive. Please try a different port and IP");
+					}
 				} catch (Exception ex){
 					textDisplay.setText("Invalid IP or Port");
 				}
@@ -455,68 +469,5 @@ public class Sender_GUI {
 		//Renders the Text Display for information from Server
 		renderTextDisplay();
 	}
-
-	public void test_for_life() throws IOException {
-		// get Sender Port #
-		int port_sender = Integer.parseInt(this.txtPORTSender.getText());
-
-		// Create new socket and associate w/ correct port later
-		DatagramSocket socket = new DatagramSocket(port_sender);
-
-		// Get the IP address for the Sender from the txtIPReceiver input field
-		String IP = this.txtIPReceiver.getText();
-		InetAddress address = InetAddress.getByName(IP);
-
-		// Get the port from the txtPORTSender
-		int port_receiver = Integer.parseInt(this.txtPORTReceiver.getText());
-
-		// buffers
-		byte[] buf = {12, 13}; //send buffer
-		byte[] buf1 = new byte[2]; // receive buffer
-		DatagramPacket send_packet = new DatagramPacket(buf, 2, address, port_receiver);
-		DatagramPacket receive_packet = new DatagramPacket(buf1, 2);
-
-		// connect() method
-		socket.connect(address, port_receiver);
-
-		// test isBound() method
-		System.out.println("IsBound : " + socket.isBound());
-		// test isConnected() method
-		System.out.println("isConnected : " + socket.isConnected());
-		// test getInetAddress() method
-		System.out.println("InetAddress : " + socket.getInetAddress());
-		// test getPort() method
-		System.out.println("Port : " + socket.getPort());
-		// test getRemoteSocketAddress() method
-		System.out.println("Remote socket address : " +
-				socket.getRemoteSocketAddress());
-		// test getLocalSocketAddress() method
-		System.out.println("Local socket address : " +
-				socket.getLocalSocketAddress());
-
-		// send() method
-		socket.send(send_packet);
-		System.out.println("...packet sent successfully....");
-
-		// receive() method
-		socket.receive(receive_packet);
-		System.out.println("Received packet data : " +
-				Arrays.toString(receive_packet.getData()));
-
-		// getLocalPort() method
-		System.out.println("Local Port : " + socket.getLocalPort());
-
-		// getLocalAddress() method
-		System.out.println("Local Address : " + socket.getLocalAddress());
-
-		// setSOTimeout() method
-		socket.setSoTimeout(50);
-
-		// getSOTimeout() method
-		System.out.println("SO Timeout : " + socket.getSoTimeout());
-
-	}
-
-
 
 }
