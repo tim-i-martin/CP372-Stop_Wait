@@ -39,6 +39,10 @@ public class Receiver {
 
         fw = new FileWriter(file_name);
 
+        // *TODO* wrap this behaviour in an if-else statement based on the size of the packet
+        // *TODO* Incoming - have it constantly looping and waiting on input - no TimeOut int
+        // *TODO* needed here
+
         // establishes DatagramSocket at the receiver_port number on this maching
         dg_socket = new DatagramSocket(receiver_port);
 

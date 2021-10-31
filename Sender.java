@@ -86,16 +86,17 @@ public class Sender {
     public static int send_file(DatagramSocket socket,
                                 String file_name,
                                 int timeout,
+                                boolean is_reliable,
                                 int port_sender, int port_receiver, String IP) throws IOException {
         // if socket is null returns -1
         if (socket == null) {
             return -1;
         }
+        // if is_reliable, set modulus to 1, otherwise set to 10
+        int modulus = is_reliable?1:10;
 
         // entering this part of the code means that the socket existed
         // ============================================================
-
-        //
 
         // instantiates the reader for the file passed
         FileReader fileReader = new FileReader(file_name);
@@ -111,13 +112,17 @@ public class Sender {
 
         // Constant loop reading from the file transferring that data to packets then sending
         // those packets
-        int loop_condition = 1;
+        int loop_condition = 1, loop_counter = 0;
         int offset = 0, length = 16, sequence_number = 0;
         while (loop_condition != -1) {
             loop_condition = read_from_file_to_datagram(fileReader,
                     send_packet, offset, length, sequence_number);
 
-            socket.send(send_packet);
+            // modulus will be 10 if this function is called w/ is_reliable == false
+            // otherwise it will be 1 and the if statement will always evaluate true
+            if (loop_counter % modulus == 0) {
+                socket.send(send_packet);
+            }
             boolean timeout_condition = true;
             socket.setSoTimeout(timeout);
             while (timeout_condition) {
@@ -126,7 +131,7 @@ public class Sender {
                     socket.receive(receive_packet_curr);
 
                     timeout_condition = false;
-                    // perform some sort of validation on packet received to decide if
+                    // *Todo* perform some sort of validation on packet received to decide if
                     // the previous packet needs to be resent and then re-enter the loop
                     // by setting the packet value
 
@@ -134,7 +139,7 @@ public class Sender {
                     socket.send(send_packet);
                 }
             }
-
+            loop_counter++;
         };
 
         return 1;

@@ -42,6 +42,9 @@ public class Sender_GUI {
 	private JTextArea textDisplay;
 
 	private DatagramSocket socket;
+	int port_sender;
+	String IP;
+	int port_receiver;
 
 	/**
 	 * Launch the application.
@@ -402,17 +405,13 @@ public class Sender_GUI {
 	}
 
 	/**
-	 * adds Action listener to ISALIVE buttion
+	 * adds Action listener to ISALIVE button
 	 */
 	private void actionBtnISALIVE(JButton btnISALIVE) {
 		btnISALIVE.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try{
-					// Get sender port, IP and receiver port
-					int port_sender = Integer.parseInt(txtPORTSender.getText());
-					String IP = txtIPReceiver.getText();
-					int port_receiver = Integer.parseInt(txtPORTReceiver.getText());
 					// Call the test_for_life static function from the Sender class
 					// to assign the socket
 					socket = Sender.test_for_life(port_sender, port_receiver, IP);
@@ -421,8 +420,13 @@ public class Sender_GUI {
 								IP + ":" + port_receiver + "is alive");
 					} else {
 						textDisplay.setText("Receiver at " +
-								IP + ":" + port_receiver + "is not alive. Please try a different port and IP");
+								IP + ":" + port_receiver +
+								"is not alive. Please try a different port and IP");
 					}
+					// Get sender port, IP and receiver port
+					port_sender = Integer.parseInt(txtPORTSender.getText());
+					IP = txtIPReceiver.getText();
+					port_receiver = Integer.parseInt(txtPORTReceiver.getText());
 				} catch (Exception ex){
 					textDisplay.setText("Invalid IP or Port");
 				}
