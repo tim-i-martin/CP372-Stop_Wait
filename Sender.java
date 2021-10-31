@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Timer;
 
+import javax.swing.JTextField;
+
 public class Sender {
 
     /**
@@ -83,15 +85,21 @@ public class Sender {
         return socket;
     }
 
-    public static int send_file(DatagramSocket socket,
+    public static void send_file(DatagramSocket socket,
                                 String file_name,
                                 int timeout,
                                 boolean is_reliable,
-                                int port_receiver, String IP) throws IOException {
+                                int port_receiver, String IP,
+                                JTextField txtPackageCount) throws IOException {
         // if socket is null returns -1
         if (socket == null) {
-            return -1;
+            //return -1;
+            txtPackageCount.setText("No Connection");
         }
+
+
+        System.out.println("In Sending file");
+
         // if is_reliable, set modulus to 1, otherwise set to 10
         int modulus = is_reliable?1:10;
 
@@ -112,18 +120,32 @@ public class Sender {
         DatagramPacket send_packet = new DatagramPacket(buf, 18, address, port_receiver);
         DatagramPacket receive_packet_curr = new DatagramPacket(buf1, 2);
 
+        System.out.println("after packet creation");
+
         // Constant loop reading from the file transferring that data to packets then sending
         // those packets
         int loop_condition = 1, loop_counter = 0, total_counter = 0;
         int offset = 0, length = 16, sequence_number = 0;
+
+
+        System.out.println("before loop");
+
+
         while (loop_condition != -1) {
+
+            System.out.println("looping...");
+
             loop_condition = read_from_file_to_datagram(fileReader,
                     send_packet, offset, length, sequence_number);
+
+            System.out.println("established loop condition");
 
             // modulus will be 10 if this function is called w/ is_reliable == false
             // otherwise it will be 1 and the if statement will always evaluate true
             if (loop_counter % modulus == 0) {
+                System.out.println("before send call");
                 socket.send(send_packet);
+                System.out.println("after send call");
             }
             // calls helper function to resend the packet if timeout is reached
             resend_packet_on_timeout(socket, receive_packet_curr, send_packet, total_counter);
@@ -137,6 +159,9 @@ public class Sender {
             total_counter++;
             loop_counter++;
         };
+
+        System.out.println("outside the loop");
+
         // Once loop condition is set to -1, it means that the end of the file has been reached
         // send a packet containing value 2 at it's head to indicate to the receiver that
         // the FileWriter can be closed and it can re-enter the await-connection state
@@ -144,7 +169,9 @@ public class Sender {
         socket.send(send_packet);
         resend_packet_on_timeout(socket, receive_packet_curr, send_packet, total_counter);
 
-        return total_counter;
+        txtPackageCount.setText(String.valueOf(total_counter));
+
+        return;
     }
 
     /**

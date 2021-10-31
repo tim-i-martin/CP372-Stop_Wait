@@ -44,7 +44,11 @@ public class Sender_GUI {
 	private DatagramSocket socket;
 	int port_sender;
 	String IP;
-	int port_receiver;
+    int port_receiver;
+    String file_name;
+    int timeout;
+    boolean is_reliable;
+
 
 	/**
 	 * Launch the application.
@@ -211,14 +215,7 @@ public class Sender_GUI {
         frmClientPortal.getContentPane().add(unreliableRadio,gbc_unreliable);
 
 
-
-
      }
-
-
-
-
-
 
 
 	/**
@@ -390,11 +387,17 @@ public class Sender_GUI {
 		btnSEND.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try{
 
-				String refersTo = textRefersTo.getText();
-				
-				//client.GET(colour, x, y, refersTo);
+                file_name = txtFILEInput.getText();
+                IP = txtIPReceiver.getText();
+                port_receiver = Integer.parseInt(txtPORTReceiver.getText());
+                timeout = Integer.parseInt(txtTimeout.getText());
+
+                is_reliable = reliableRadio.isSelected();
+
+                try{
+                    System.out.println("trying...");
+                    Sender.send_file(socket, file_name, timeout, is_reliable, port_receiver, IP, txtPackageCount);
 
 				} catch (Exception ex){
 					textDisplay.setText("Invalid Request");
