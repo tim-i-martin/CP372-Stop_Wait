@@ -87,13 +87,16 @@ public class Sender {
                                 String file_name,
                                 int timeout,
                                 boolean is_reliable,
-                                int port_sender, int port_receiver, String IP) throws IOException {
+                                int port_receiver, String IP) throws IOException {
         // if socket is null returns -1
         if (socket == null) {
             return -1;
         }
         // if is_reliable, set modulus to 1, otherwise set to 10
         int modulus = is_reliable?1:10;
+
+        // if socket is not null, pre-emptively set the timeout since we may use it
+        socket.setSoTimeout(timeout);
 
         // entering this part of the code means that the socket existed
         // ============================================================
@@ -104,11 +107,10 @@ public class Sender {
         // Get the IP address for the Sender from the txtIPReceiver input field
         InetAddress address = InetAddress.getByName(IP);
 
-        byte[] buf = new byte[1]; //send buffer
-        byte[] buf1 = new byte[1]; // receive buffer
-        DatagramPacket send_packet = new DatagramPacket(buf, 2, address, port_receiver);
+        byte[] buf = new byte[18]; //send buffer
+        byte[] buf1 = new byte[2]; // receive buffer
+        DatagramPacket send_packet = new DatagramPacket(buf, 18, address, port_receiver);
         DatagramPacket receive_packet_curr = new DatagramPacket(buf1, 2);
-        DatagramPacket receive_packet_prev;
 
         // Constant loop reading from the file transferring that data to packets then sending
         // those packets
@@ -123,24 +125,23 @@ public class Sender {
             if (loop_counter % modulus == 0) {
                 socket.send(send_packet);
             }
-            boolean timeout_condition = true;
-            socket.setSoTimeout(timeout);
-            while (timeout_condition) {
-                try {
-                    receive_packet_prev = receive_packet_curr;
-                    socket.receive(receive_packet_curr);
+            // calls helper function to resend the packet if timeout is reached
+            resend_packet_on_timeout(socket, receive_packet_curr, send_packet);
 
-                    timeout_condition = false;
-                    // *Todo* perform some sort of validation on packet received to decide if
-                    // the previous packet needs to be resent and then re-enter the loop
-                    // by setting the packet value
+            // increases the offset variable by length characters to allow the
+            // FileReader to read the next length characters
+            offset = offset + length;
+            // alternates the sequence number state
+            sequence_number = (sequence_number + 1) % 2;
 
-                } catch (SocketTimeoutException e) {
-                    socket.send(send_packet);
-                }
-            }
             loop_counter++;
         };
+        // Once loop condition is set to -1, it means that the end of the file has been reached
+        // send a packet containing value 2 at it's head to indicate to the receiver that
+        // the FileWriter can be closed and it can re-enter the await-connection state
+        send_packet.setData(new byte[] {2, 0});
+        socket.send(send_packet);
+        resend_packet_on_timeout(socket, receive_packet_curr, send_packet);
 
         return 1;
     }
@@ -161,10 +162,9 @@ public class Sender {
                                                   int offset,
                                                   int length,
                                                   int sequence_number) throws IOException {
-        int readable;
         char[] cbuf = new char[length];
 
-        if ((readable=fileReader.read(cbuf, offset, length)) != -1) {
+        if (fileReader.read(cbuf, offset, length) != -1) {
 
             // instantiates array length*2 + 2 bytes long for transfer of characters
             // (2 bytes per char) along with sequence number (1 bytes) + empty byte
@@ -183,7 +183,30 @@ public class Sender {
             return 1;
         }
 
+        fileReader.close();
         return -1;
+    }
+
+    private static void resend_packet_on_timeout(DatagramSocket socket,
+                                                 DatagramPacket receive_packet_curr,
+                                                 DatagramPacket send_packet) throws IOException {
+
+        // initial parameters to loop and await the ACK response
+        // loop condition to make sure that we hit socket.receive() repeatedly until
+        // we receive an ACK
+        boolean timeout_condition = true;
+        while (timeout_condition) {
+            try {
+                // assigns received packet to the DatagramPacket specified
+                socket.receive(receive_packet_curr);
+                // if this line is hit it means that an exception was not thrown
+                // i.e. that the packet was received, and we can exit the loop
+                timeout_condition = false;
+
+            } catch (SocketTimeoutException e) {
+                socket.send(send_packet);
+            }
+        }
     }
 
 

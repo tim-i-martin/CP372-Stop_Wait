@@ -39,44 +39,69 @@ public class Receiver {
 
         fw = new FileWriter(file_name);
 
-        // *TODO* wrap this behaviour in an if-else statement based on the size of the packet
+        // *TODO* wrap this behaviour in an if-else statement based on the size of the packet??
         // *TODO* Incoming - have it constantly looping and waiting on input - no TimeOut int
         // *TODO* needed here
+        while (true) {
+            //-----------------------------------------------------------------------------
+            // outer loop includes behaviour for the isAlive connection - this is required
+            // for the sender to connnect
+            //-----------------------------------------------------------------------------
 
-        // establishes DatagramSocket at the receiver_port number on this maching
-        dg_socket = new DatagramSocket(receiver_port);
+            // establishes DatagramSocket at the receiver_port number on this maching
+            dg_socket = new DatagramSocket(receiver_port);
 
-        // these are the two buffers needed to create the DatagramPackets
-        // one empty for the receipt of new data bytes
-        // one non-empty for the sending bytes (not 100% sure why though)
-        byte[] buf = new byte[2];
-        byte[] send = {13, 18};
-        // Creating the packet to fill upon receipt from sender
-        dg_packet = new DatagramPacket(buf, buf.length);
-        // packet receipt from sender
-        dg_socket.receive(dg_packet);
+            // these are the two buffers needed to create the DatagramPackets
+            // one empty for the receipt of new data bytes
+            // one non-empty for the sending bytes (not 100% sure why though)
+            byte[] buf = new byte[2];
+            byte[] send = {13, 18};
+            // Creating the packet to fill upon receipt from sender
+            dg_packet = new DatagramPacket(buf, 2);
+            // packet receipt from sender
+            dg_socket.receive(dg_packet);
 
+            // test packet received:
+            String msg = new String(buf);
+            System.out.println("Received: " + msg);
 
-        // test packet received:
-        String msg = new String(buf);
-        System.out.println("Received: " + msg);
+            // sends initial response packet to Sender side w/ buffer send
+            DatagramPacket send_dg_packet = new DatagramPacket(send,
+                    2, dg_packet.getAddress(), dg_packet.getPort());
+            dg_socket.send(send_dg_packet);
 
-        // sends initial response packet to Sender side w/ buffer send
-        DatagramPacket send_dg_packet = new DatagramPacket(send,
-                2, dg_packet.getAddress(), dg_packet.getPort());
-        dg_socket.send(send_dg_packet);
+            // this is the loop entered after the handshake isAlive connection
+            // this loop will call the write datagram to file after validation
+            int sequence_number = 0;
 
+            while (true) {
+                // this is the buffer and packet for file storage
+                buf = new byte[18];
+                dg_packet = new DatagramPacket(buf, buf.length);
+
+                dg_socket.receive(dg_packet);
+                // if the sequence number of the packet matches the expected sequence
+                // number, then write the datagram to the file and change the sequence #
+                if (dg_packet.getData()[0] == sequence_number) {
+                    write_datagram_to_file(dg_packet, fw);
+
+                    // to alternate between two sequence #s we use mod 2 on an
+                    // incrementally increasing function
+                    sequence_number = (sequence_number + 1) % 2;
+                } else {
+                    if (dg_packet.getData()[0] == 2) {
+                        break;
+                    }
+                    send_ack(dg_socket, send_dg_packet, sequence_number);
+                }
+            }
+        }
     }
 
     private static void write_datagram_to_file(DatagramPacket dp, FileWriter fw) throws IOException {
         // instantiate byte arrays for data from packet and for data to convert to string
         byte[] dp_data = dp.getData();
         byte[] data = new byte[dp_data.length - 1];
-
-        // -------------------------------------------
-        // *TODO* validate based on first bit in packet here -- this behaviour is probably better outside of the fxn within the function calling write_datagram_to_file
-        int sequence_number = (int) dp_data[0];
-        // -------------------------------------------
 
         // copies byte array indices from 1 on in dp_data to data
         System.arraycopy(dp_data, 1, data, 0, dp_data.length);
@@ -87,5 +112,13 @@ public class Receiver {
         for (int i = 0; i < str.length(); i++){
             fw.write(str.charAt(i));
         }
+    }
+
+    private static void send_ack(DatagramSocket dg_socket,
+                                 DatagramPacket send_dg_packet,
+                                 int sequence_number) throws IOException {
+        // sets packet with byte value of the sequence_number to return as an ACK
+        send_dg_packet.setData(new byte[] {(byte) sequence_number, 0});
+        dg_socket.send(send_dg_packet);
     }
 }
