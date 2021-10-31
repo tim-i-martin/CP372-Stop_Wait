@@ -114,7 +114,7 @@ public class Sender {
 
         // Constant loop reading from the file transferring that data to packets then sending
         // those packets
-        int loop_condition = 1, loop_counter = 0;
+        int loop_condition = 1, loop_counter = 0, total_counter = 0;
         int offset = 0, length = 16, sequence_number = 0;
         while (loop_condition != -1) {
             loop_condition = read_from_file_to_datagram(fileReader,
@@ -126,7 +126,7 @@ public class Sender {
                 socket.send(send_packet);
             }
             // calls helper function to resend the packet if timeout is reached
-            resend_packet_on_timeout(socket, receive_packet_curr, send_packet);
+            resend_packet_on_timeout(socket, receive_packet_curr, send_packet, total_counter);
 
             // increases the offset variable by length characters to allow the
             // FileReader to read the next length characters
@@ -134,6 +134,7 @@ public class Sender {
             // alternates the sequence number state
             sequence_number = (sequence_number + 1) % 2;
 
+            total_counter++;
             loop_counter++;
         };
         // Once loop condition is set to -1, it means that the end of the file has been reached
@@ -141,9 +142,9 @@ public class Sender {
         // the FileWriter can be closed and it can re-enter the await-connection state
         send_packet.setData(new byte[] {2, 0});
         socket.send(send_packet);
-        resend_packet_on_timeout(socket, receive_packet_curr, send_packet);
+        resend_packet_on_timeout(socket, receive_packet_curr, send_packet, total_counter);
 
-        return 1;
+        return total_counter;
     }
 
     /**
@@ -187,9 +188,18 @@ public class Sender {
         return -1;
     }
 
+    /**
+     * This file
+     *
+     * @param socket - the socket to recieve from and send through
+     * @param receive_packet_curr - the DatagramPacket to put received info into
+     * @param send_packet - the DatagramPacket to send data using
+     * @throws IOException - stuff goes wrong
+     */
     private static void resend_packet_on_timeout(DatagramSocket socket,
                                                  DatagramPacket receive_packet_curr,
-                                                 DatagramPacket send_packet) throws IOException {
+                                                 DatagramPacket send_packet,
+                                                 int total_counter) throws IOException {
 
         // initial parameters to loop and await the ACK response
         // loop condition to make sure that we hit socket.receive() repeatedly until
@@ -205,6 +215,7 @@ public class Sender {
 
             } catch (SocketTimeoutException e) {
                 socket.send(send_packet);
+                total_counter++;
             }
         }
     }
