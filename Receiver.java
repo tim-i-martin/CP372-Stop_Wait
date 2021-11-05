@@ -37,7 +37,11 @@ public class Receiver {
             argCounter++;
         }
 
+        // This is the writer for the file
         fw = new FileWriter(file_name);
+
+        // establishes DatagramSocket at the receiver_port number on this maching
+        dg_socket = new DatagramSocket(receiver_port);
 
         // *TODO* wrap this behaviour in an if-else statement based on the size of the packet??
         // *TODO* Incoming - have it constantly looping and waiting on input - no TimeOut int
@@ -47,9 +51,6 @@ public class Receiver {
             // outer loop includes behaviour for the isAlive connection - this is required
             // for the sender to connnect
             //-----------------------------------------------------------------------------
-
-            // establishes DatagramSocket at the receiver_port number on this maching
-            dg_socket = new DatagramSocket(receiver_port);
 
             // these are the two buffers needed to create the DatagramPackets
             // one empty for the receipt of new data bytes
@@ -101,17 +102,16 @@ public class Receiver {
     private static void write_datagram_to_file(DatagramPacket dp, FileWriter fw) throws IOException {
         // instantiate byte arrays for data from packet and for data to convert to string
         byte[] dp_data = dp.getData();
-        byte[] data = new byte[dp_data.length - 1];
+        byte[] data = new byte[dp_data.length - 2];
 
         // copies byte array indices from 1 on in dp_data to data
-        System.arraycopy(dp_data, 1, data, 0, data.length);
+        System.arraycopy(dp_data, 2, data, 0, data.length);
 
         // instantiates String str from byte data in byte[] according to the UTF-8 charset
         String str = new String(data, StandardCharsets.UTF_8);
         // Writes character data to the file
-        for (int i = 0; i < str.length(); i++){
-            fw.write(str.charAt(i));
-        }
+        fw.write(str, 0, str.length());
+
     }
 
     private static void send_ack(DatagramSocket dg_socket,

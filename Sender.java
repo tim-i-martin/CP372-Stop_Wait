@@ -120,32 +120,22 @@ public class Sender {
         DatagramPacket send_packet = new DatagramPacket(buf, 18, address, port_receiver);
         DatagramPacket receive_packet_curr = new DatagramPacket(buf1, 2);
 
-        System.out.println("after packet creation");
-
         // Constant loop reading from the file transferring that data to packets then sending
         // those packets
         int loop_condition = 1, loop_counter = 0, total_counter = 0;
         int offset = 0, length = 16, sequence_number = 0;
 
 
-        System.out.println("before loop");
-
-
         while (loop_condition != -1) {
-
-            System.out.println("looping...");
 
             loop_condition = read_from_file_to_datagram(fileReader,
                     send_packet, offset, length, sequence_number);
 
-            System.out.println("established loop condition");
 
             // modulus will be 10 if this function is called w/ is_reliable == false
             // otherwise it will be 1 and the if statement will always evaluate true
             if (loop_counter % modulus == 0) {
-                System.out.println("before send call");
                 socket.send(send_packet);
-                System.out.println("after send call");
             }
             // calls helper function to resend the packet if timeout is reached
             resend_packet_on_timeout(socket, receive_packet_curr, send_packet, total_counter);
@@ -159,8 +149,6 @@ public class Sender {
             total_counter++;
             loop_counter++;
         };
-
-        System.out.println("outside the loop");
 
         // Once loop condition is set to -1, it means that the end of the file has been reached
         // send a packet containing value 2 at it's head to indicate to the receiver that
@@ -192,13 +180,14 @@ public class Sender {
                                                   int sequence_number) throws IOException {
         char[] cbuf = new char[length];
 
-        if (fileReader.read(cbuf, offset, length) != -1) {
+        if (fileReader.read(cbuf, 0, length) != -1) {
 
             // instantiates array length*2 + 2 bytes long for transfer of characters
             // (2 bytes per char) along with sequence number (1 bytes) + empty byte
             byte[] dg_data = new byte[length + 2];
             dg_data[0] =(byte) sequence_number;
 
+            System.out.println(cbuf);
             // stores the data from the character buffer read from the file and then
             // copies the length*2 inputs in dg_data into the last length*2 positions
             // in array dg_data
@@ -236,6 +225,8 @@ public class Sender {
             try {
                 // assigns received packet to the DatagramPacket specified
                 socket.receive(receive_packet_curr);
+
+                System.out.println("ACK received w/ value: " + receive_packet_curr.getData()[0]);
                 // if this line is hit it means that an exception was not thrown
                 // i.e. that the packet was received, and we can exit the loop
                 timeout_condition = false;
