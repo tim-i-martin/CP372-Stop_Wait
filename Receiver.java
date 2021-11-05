@@ -16,7 +16,7 @@ public class Receiver {
         int receiver_port = 4444, sender_port = 4443;
         DatagramSocket dg_socket;
         DatagramPacket dg_packet;
-        FileWriter fw = new FileWriter("write_to.txt", true);
+        FileWriter fw;
 
         // Parse program arguments into key variables
         for (String output : args) {
@@ -37,11 +37,10 @@ public class Receiver {
             argCounter++;
         }
 
-        // This is the writer for the file
-        fw = new FileWriter(file_name);
 
-        // establishes DatagramSocket at the receiver_port number on this maching
-        dg_socket = new DatagramSocket(receiver_port);
+
+
+
 
         // *TODO* wrap this behaviour in an if-else statement based on the size of the packet??
         // *TODO* Incoming - have it constantly looping and waiting on input - no TimeOut int
@@ -51,6 +50,13 @@ public class Receiver {
             // outer loop includes behaviour for the isAlive connection - this is required
             // for the sender to connnect
             //-----------------------------------------------------------------------------
+
+
+            // establishes DatagramSocket at the receiver_port number on this machine
+            dg_socket = new DatagramSocket(receiver_port);
+
+            // This is the writer for the file
+            fw = new FileWriter(file_name, true);
 
             // these are the two buffers needed to create the DatagramPackets
             // one empty for the receipt of new data bytes
@@ -64,7 +70,6 @@ public class Receiver {
 
             // test packet received:
             String msg = new String(buf);
-            System.out.println("Received: " + msg);
 
             // sends initial response packet to Sender side w/ buffer send
             DatagramPacket send_dg_packet = new DatagramPacket(send,
@@ -75,12 +80,18 @@ public class Receiver {
             // this loop will call the write datagram to file after validation
             int sequence_number = 0;
 
+            boolean measure_start = true;
+            long startTime = 0;
             while (true) {
                 // this is the buffer and packet for file storage
                 buf = new byte[18];
                 dg_packet = new DatagramPacket(buf, buf.length);
 
                 dg_socket.receive(dg_packet);
+
+                // measures the start time only on the first loop
+                if (measure_start) startTime = System.currentTimeMillis();
+
                 // if the sequence number of the packet matches the expected sequence
                 // number, then write the datagram to the file and change the sequence #
                 if (dg_packet.getData()[0] == sequence_number) {
@@ -95,7 +106,16 @@ public class Receiver {
                     }
                     send_ack(dg_socket, send_dg_packet, sequence_number);
                 }
+                measure_start = false;
             }
+            long endTime = System.currentTimeMillis();
+            long transferTime = endTime - startTime;
+            System.out.println("File transfer completed in " + transferTime + "milliseconds");
+
+            fw.flush();
+            fw.close();
+
+            dg_socket.close();
         }
     }
 
@@ -109,9 +129,8 @@ public class Receiver {
 
         // instantiates String str from byte data in byte[] according to the UTF-8 charset
         String str = new String(data, StandardCharsets.UTF_8);
-        System.out.println(str);
         // Writes character data to the file
-        fw.write(str, 0, str.length());
+        fw.write(str);
 
     }
 

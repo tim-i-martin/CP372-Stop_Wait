@@ -1,22 +1,13 @@
 import java.awt.EventQueue;
 
-import javax.swing.JFrame;
+import javax.swing.*;
 import java.awt.BorderLayout;
 
-import javax.swing.ButtonGroup;
-import javax.swing.JButton;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Insets;
-import javax.swing.JTextField;
-import javax.swing.JLabel;
-import javax.swing.JRadioButton;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerListModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.JTextArea;
 import java.awt.Color;
 import java.io.IOException;
 import java.net.*;
@@ -398,7 +389,8 @@ public class Sender_GUI {
 
                 try{
                     System.out.println("trying...");
-                    Sender.send_file(socket, file_name, timeout, is_reliable, port_receiver, IP, txtPackageCount);
+					startSendThread(socket, file_name, timeout, is_reliable,
+							port_receiver, IP, txtPackageCount);
 
 				} catch (Exception ex){
 					System.out.println(ex);
@@ -438,6 +430,28 @@ public class Sender_GUI {
 
 			}
 		});
+	}
+
+	private void startSendThread(DatagramSocket socket,
+								 String file_name,
+								 int timeout,
+								 boolean is_reliable,
+								 int port_receiver, String IP,
+								 JTextField txtPackageCount) {
+
+		SwingWorker sw = new SwingWorker() {
+
+			@Override
+			protected Object doInBackground() throws Exception {
+				Sender.send_file(
+						socket, file_name, timeout, is_reliable,
+						port_receiver, IP, txtPackageCount);
+
+				return null;
+			}
+		};
+
+		sw.execute();
 	}
 
 

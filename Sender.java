@@ -138,7 +138,8 @@ public class Sender {
                 socket.send(send_packet);
             }
             // calls helper function to resend the packet if timeout is reached
-            resend_packet_on_timeout(socket, receive_packet_curr, send_packet, total_counter);
+            total_counter = resend_packet_on_timeout(
+                    socket, receive_packet_curr, send_packet, total_counter);
 
             // increases the offset variable by length characters to allow the
             // FileReader to read the next length characters
@@ -148,6 +149,10 @@ public class Sender {
 
             total_counter++;
             loop_counter++;
+
+            if (loop_counter % 10 == 0) {
+                txtPackageCount.setText(String.valueOf(total_counter));
+            }
         };
 
         // Once loop condition is set to -1, it means that the end of the file has been reached
@@ -156,6 +161,7 @@ public class Sender {
         send_packet.setData(new byte[] {2, 0});
         socket.send(send_packet);
         resend_packet_on_timeout(socket, receive_packet_curr, send_packet, total_counter);
+
 
         txtPackageCount.setText(String.valueOf(total_counter));
 
@@ -212,7 +218,7 @@ public class Sender {
      * @param send_packet - the DatagramPacket to send data using
      * @throws IOException - stuff goes wrong
      */
-    private static void resend_packet_on_timeout(DatagramSocket socket,
+    private static int resend_packet_on_timeout(DatagramSocket socket,
                                                  DatagramPacket receive_packet_curr,
                                                  DatagramPacket send_packet,
                                                  int total_counter) throws IOException {
@@ -236,6 +242,7 @@ public class Sender {
                 total_counter++;
             }
         }
+        return total_counter;
     }
 
 
