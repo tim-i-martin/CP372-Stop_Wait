@@ -196,14 +196,14 @@ public class Sender {
 
             // instantiates array length*2 + 2 bytes long for transfer of characters
             // (2 bytes per char) along with sequence number (1 bytes) + empty byte
-            byte[] dg_data = new byte[length*2 + 2];
+            byte[] dg_data = new byte[length + 2];
             dg_data[0] =(byte) sequence_number;
 
             // stores the data from the character buffer read from the file and then
             // copies the length*2 inputs in dg_data into the last length*2 positions
             // in array dg_data
             byte[] data = new String(cbuf).getBytes(StandardCharsets.UTF_8);
-            System.arraycopy(data, 0, dg_data, 2, length*2);
+            System.arraycopy(data, 0, dg_data, 2, length);
 
             // sets the data in the datagram
             dg.setData(dg_data);

@@ -97,7 +97,7 @@ public class Sender_GUI {
 	private void renderTextIPReceiver() {
 		txtIPReceiver = new JTextField();
 		txtIPReceiver.setToolTipText("enter IP address of Receiver in format xxx.x.x.x");
-		txtIPReceiver.setText("IP Receiver");
+		txtIPReceiver.setText("127.0.0.1");
 		GridBagConstraints gbc_txtIPReceiver = new GridBagConstraints();
         gbc_txtIPReceiver.gridwidth = 3;
         gbc_txtIPReceiver.insets = new Insets(0, 0, 5, 5);
@@ -114,7 +114,7 @@ public class Sender_GUI {
 	private void renderTextPORTReceiver() {
 		txtPORTReceiver = new JTextField();
 		txtPORTReceiver.setToolTipText("enter the 4 digit port number");
-		txtPORTReceiver.setText("PORT Receiver");
+		txtPORTReceiver.setText("4444");
 		GridBagConstraints gbc_txtPORTReceiver = new GridBagConstraints();
 		gbc_txtPORTReceiver.gridwidth = 3;
 		gbc_txtPORTReceiver.insets = new Insets(0, 0, 5, 5);
@@ -132,7 +132,7 @@ public class Sender_GUI {
 	private void renderTextPORTSender() {
 		txtPORTSender = new JTextField();
 		txtPORTSender.setToolTipText("enter the PORT to receive ACK's");
-		txtPORTSender.setText("PORT SENDER");
+		txtPORTSender.setText("4443");
 		GridBagConstraints gbc_txtPORTSender = new GridBagConstraints();
 		gbc_txtPORTSender.gridwidth = 3;
 		gbc_txtPORTSender.insets = new Insets(0, 0, 5, 5);
@@ -150,7 +150,7 @@ public class Sender_GUI {
 	private void renderTextFILEInput() {
 		txtFILEInput = new JTextField();
 		txtFILEInput.setToolTipText("enter the file name to transmit");
-		txtFILEInput.setText("filepath");
+		txtFILEInput.setText("write_from.txt");
 		GridBagConstraints gbc_txtFILEInput = new GridBagConstraints();
 		gbc_txtFILEInput.gridwidth = 3;
 		gbc_txtFILEInput.insets = new Insets(0, 0, 5, 5);
@@ -185,6 +185,7 @@ public class Sender_GUI {
      private void renderButtonOperatingMode(){
         reliableRadio = new JRadioButton();
         reliableRadio.setText("Reliable");
+		reliableRadio.setSelected(true);
         
         unreliableRadio = new JRadioButton();
         unreliableRadio.setText("Unreliable");
@@ -224,7 +225,7 @@ public class Sender_GUI {
 	private void renderTextTimeout() {
 		txtTimeout = new JTextField();
 		txtTimeout.setToolTipText("enter the timeout in ms");
-		txtTimeout.setText("timeout");
+		txtTimeout.setText("50");
 		GridBagConstraints gbc_txtTimeout = new GridBagConstraints();
 		gbc_txtTimeout.gridwidth = 3;
 		gbc_txtTimeout.insets = new Insets(0, 0, 5, 5);
@@ -400,6 +401,7 @@ public class Sender_GUI {
                     Sender.send_file(socket, file_name, timeout, is_reliable, port_receiver, IP, txtPackageCount);
 
 				} catch (Exception ex){
+					System.out.println(ex);
 					textDisplay.setText("Invalid Request");
 				}
 
@@ -415,21 +417,21 @@ public class Sender_GUI {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try{
+					port_sender = Integer.parseInt(txtPORTSender.getText());
+					IP = txtIPReceiver.getText();
+					port_receiver = Integer.parseInt(txtPORTReceiver.getText());
 					// Call the test_for_life static function from the Sender class
 					// to assign the socket
 					socket = Sender.test_for_life(port_sender, port_receiver, IP);
 					if (socket != null){
 						textDisplay.setText("Receiver at " +
-								IP + ":" + port_receiver + "is alive");
+								IP + ":" + port_receiver + " is alive");
 					} else {
 						textDisplay.setText("Receiver at " +
 								IP + ":" + port_receiver +
 								"is not alive. Please try a different port and IP");
 					}
 					// Get sender port, IP and receiver port
-					port_sender = Integer.parseInt(txtPORTSender.getText());
-					IP = txtIPReceiver.getText();
-					port_receiver = Integer.parseInt(txtPORTReceiver.getText());
 				} catch (Exception ex){
 					textDisplay.setText("Invalid IP or Port");
 				}

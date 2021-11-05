@@ -12,7 +12,7 @@ public class Receiver {
 
         // Set variables used for Receiver - base values for use in case if limited
         // input to command line parameters
-        String sender_ip = "127.0.0.1", file_name = "received.txt";
+        String sender_ip = "127.0.0.1", file_name = "write_to.txt";
         int receiver_port = 4444, sender_port = 4443;
         DatagramSocket dg_socket;
         DatagramPacket dg_packet;
@@ -84,7 +84,7 @@ public class Receiver {
                 // number, then write the datagram to the file and change the sequence #
                 if (dg_packet.getData()[0] == sequence_number) {
                     write_datagram_to_file(dg_packet, fw);
-
+                    send_ack(dg_socket, send_dg_packet, sequence_number);
                     // to alternate between two sequence #s we use mod 2 on an
                     // incrementally increasing function
                     sequence_number = (sequence_number + 1) % 2;
@@ -104,7 +104,7 @@ public class Receiver {
         byte[] data = new byte[dp_data.length - 1];
 
         // copies byte array indices from 1 on in dp_data to data
-        System.arraycopy(dp_data, 1, data, 0, dp_data.length);
+        System.arraycopy(dp_data, 1, data, 0, data.length);
 
         // instantiates String str from byte data in byte[] according to the UTF-8 charset
         String str = new String(data, StandardCharsets.UTF_8);
