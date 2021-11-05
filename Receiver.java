@@ -109,6 +109,7 @@ public class Receiver {
 
         // instantiates String str from byte data in byte[] according to the UTF-8 charset
         String str = new String(data, StandardCharsets.UTF_8);
+        System.out.println(str);
         // Writes character data to the file
         fw.write(str, 0, str.length());
 
