@@ -89,6 +89,8 @@ public class Receiver {
 
                 dg_socket.receive(dg_packet);
 
+                //System.out.println(dg_packet.getLength());
+                //System.out.println("received " + new String(dg_packet.getData()));
                 // measures the start time only on the first loop
                 if (measure_start) startTime = System.currentTimeMillis();
 
@@ -122,15 +124,29 @@ public class Receiver {
     private static void write_datagram_to_file(DatagramPacket dp, FileWriter fw) throws IOException {
         // instantiate byte arrays for data from packet and for data to convert to string
         byte[] dp_data = dp.getData();
-        byte[] data = new byte[dp_data.length - 2];
+        
 
-        // copies byte array indices from 1 on in dp_data to data
-        System.arraycopy(dp_data, 2, data, 0, data.length);
+        //System.out.println("in the write program");
+        //System.out.println(dp.getLength());
 
-        // instantiates String str from byte data in byte[] according to the UTF-8 charset
-        String str = new String(data, StandardCharsets.UTF_8);
-        // Writes character data to the file
-        fw.write(str);
+        int packet_length = dp.getLength();
+
+        if (packet_length == 18){   
+            byte[] data = new byte[dp_data.length - 2];
+            // copies byte array indices from 1 on in dp_data to data
+            System.arraycopy(dp_data, 2, data, 0, data.length);
+            // instantiates String str from byte data in byte[] according to the UTF-8 charset
+            String str = new String(data, StandardCharsets.UTF_8);
+            // Writes character data to the file
+            fw.write(str);
+        }
+        else{
+            byte[] data = new byte[packet_length - 2];
+            System.arraycopy(dp_data, 2, data, 0, packet_length-2);
+            String str = new String(data, StandardCharsets.UTF_8);
+            fw.write(str);
+        }
+        
 
     }
 

@@ -199,25 +199,47 @@ public class Sender {
                                                   int sequence_number) throws IOException {
         char[] cbuf = new char[length];
 
-        if (fileReader.read(cbuf, 0, length) != -1) {
+        int text_size = fileReader.read(cbuf, 0, length);                                             
 
-            // instantiates array length*2 + 2 bytes long for transfer of characters
-            // (2 bytes per char) along with sequence number (1 bytes) + empty byte
-            byte[] dg_data = new byte[length + 2];
-            dg_data[0] =(byte) sequence_number;
+//        if (fileReader.read(cbuf, 0, length) != -1) {
+        if (text_size != -1){
+            //System.out.println(fileReader.read(cbuf, 0, length));
+            
+            //System.out.println(text_size);
+            if (text_size == length){
+                // instantiates array length*2 + 2 bytes long for transfer of characters
+                // (2 bytes per char) along with sequence number (1 bytes) + empty byte
+                byte[] dg_data = new byte[length + 2];
+                dg_data[0] =(byte) sequence_number;
 
-            //System.out.println(cbuf);
-            // stores the data from the character buffer read from the file and then
-            // copies the length*2 inputs in dg_data into the last length*2 positions
-            // in array dg_data
-            byte[] data = new String(cbuf).getBytes(StandardCharsets.UTF_8);
-            //System.out.println(data.length);
-            System.arraycopy(data, 0, dg_data, 2, length);
+                //System.out.println(cbuf);
+                // stores the data from the character buffer read from the file and then
+                // copies the length*2 inputs in dg_data into the last length*2 positions
+                // in array dg_data
+                byte[] data = new String(cbuf).getBytes(StandardCharsets.UTF_8);
+                //System.out.println(data.length);
+                System.arraycopy(data, 0, dg_data, 2, length);
 
-            // sets the data in the datagram
-            dg.setData(dg_data);
+                // sets the data in the datagram
+                dg.setData(dg_data);
 
-                return 1;
+                // read the next buffer length
+                //text_size = fileReader.read(cbuf, 0, length);
+            }
+            else{
+                //System.out.println(cbuf);
+                //System.out.println("in the else");
+                byte[] dg_data = new byte[text_size + 2];
+                dg_data[0] =(byte) sequence_number;
+                byte[] data = new String(cbuf).getBytes(StandardCharsets.UTF_8);
+                System.arraycopy(data, 0, dg_data, 2, text_size);
+                dg.setData(dg_data);
+
+
+
+            }
+
+            return 1;
         }
 
         fileReader.close();
