@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Timer;
+import java.math.*;
 
 import javax.swing.JTextField;
 
@@ -98,13 +99,25 @@ public class Sender {
         }
 
 
-        System.out.println("In Sending file");
+        //System.out.println("In Sending file");
 
         // if is_reliable, set modulus to 1, otherwise set to 10
         int modulus = is_reliable?1:10;
 
         // if socket is not null, pre-emptively set the timeout since we may use it
+        // need to make sure we are dealing with proper timeout, value from GUI is microseconds, needs to be milliseconds
+        // also, timeout must be > 0, a 0 timeout is interpreted as infinite timeout
+
+        if (timeout / 1000 == 0){
+            timeout = 1;
+        }
+        else{
+            timeout = timeout / 1000;
+        }
+
+        
         socket.setSoTimeout(timeout);
+        //socket.setSoTimeout(1);
 
         // entering this part of the code means that the socket existed
         // ============================================================
@@ -134,7 +147,7 @@ public class Sender {
 
             // modulus will be 10 if this function is called w/ is_reliable == false
             // otherwise it will be 1 and the if statement will always evaluate true
-            if (loop_counter % modulus == 0) {
+            if (is_reliable || !(loop_counter % modulus == 0)) {
                 socket.send(send_packet);
             }
             // calls helper function to resend the packet if timeout is reached
@@ -193,17 +206,18 @@ public class Sender {
             byte[] dg_data = new byte[length + 2];
             dg_data[0] =(byte) sequence_number;
 
-            System.out.println(cbuf);
+            //System.out.println(cbuf);
             // stores the data from the character buffer read from the file and then
             // copies the length*2 inputs in dg_data into the last length*2 positions
             // in array dg_data
             byte[] data = new String(cbuf).getBytes(StandardCharsets.UTF_8);
+            //System.out.println(data.length);
             System.arraycopy(data, 0, dg_data, 2, length);
 
             // sets the data in the datagram
             dg.setData(dg_data);
 
-            return 1;
+                return 1;
         }
 
         fileReader.close();
@@ -232,7 +246,8 @@ public class Sender {
                 // assigns received packet to the DatagramPacket specified
                 socket.receive(receive_packet_curr);
 
-                System.out.println("ACK received w/ value: " + receive_packet_curr.getData()[0]);
+                // line below was used for testing in the console
+                //System.out.println("ACK received w/ value: " + receive_packet_curr.getData()[0]);
                 // if this line is hit it means that an exception was not thrown
                 // i.e. that the packet was received, and we can exit the loop
                 timeout_condition = false;

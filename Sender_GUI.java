@@ -388,7 +388,7 @@ public class Sender_GUI {
                 is_reliable = reliableRadio.isSelected();
 
                 try{
-                    System.out.println("trying...");
+					System.out.println("trying...");
 					startSendThread(socket, file_name, timeout, is_reliable,
 							port_receiver, IP, txtPackageCount);
 
